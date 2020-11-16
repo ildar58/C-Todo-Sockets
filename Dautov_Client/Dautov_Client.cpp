@@ -9,7 +9,7 @@
 #define new DEBUG_NEW
 #endif
 
-unsigned int connection = 1;
+bool connection = true;
 mutex hMutex;
 
 enum Answers {
@@ -77,8 +77,9 @@ void Process() {
         case EXIT:
         {
             Message::Send(M_BROKER, M_EXIT);
+            connection = false;
             hMutex.lock();
-            cout << "Session ended\n\n" << endl;
+            cout << "Session ended\n\n";
             hMutex.unlock();
             return;
         }

@@ -48,4 +48,4 @@ class Message:
             if m.m_header.m_type == MessageTypes.M_INIT.value:
                 Message.m_client_id = m.m_header.m_to
             s.close()
-        return m
+            return m

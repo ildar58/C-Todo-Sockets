@@ -3,13 +3,14 @@
 struct Session
 {
 	int m_ID;
+	int timer;
 	string m_Name;
 
 	queue<Message> m_Messages;
 	CCriticalSection m_CS;
 
 	Session(int ID, string Name)
-		:m_ID(ID), m_Name(Name)
+		:m_ID(ID), m_Name(Name), timer(0)
 	{
 	}
 
@@ -33,4 +34,14 @@ struct Session
 		}
 	}
 
+	bool CheckClient()
+	{
+		timer += 2;
+		return timer > 10;
+	}
+
+	void ResetTimer()
+	{
+		timer = 0;
+	}
 };

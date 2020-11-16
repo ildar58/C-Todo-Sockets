@@ -10,19 +10,40 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#include <shared_mutex>
 
 int gMaxID = M_USER;
 map<int, shared_ptr<Session>> gSessions;
+shared_mutex hMutex;
+
+void CheckClients()
+{
+    while (true)
+    {
+        hMutex.lock();
+            for (auto& [id, Session] : gSessions)
+            {
+                if (Session->CheckClient())
+                {
+                    cout << id << " disconnected" << endl;
+                    gSessions.erase(Session->m_ID);
+                }
+            }
+         hMutex.unlock();
+         Sleep(2000);
+    }
+}
 
 void ProcessClient(SOCKET hSock)
 {
     CSocket s;
     s.Attach(hSock);
     Message m;
-    
+    hMutex.lock();
     int nCode = m.Receive(s);
     if (nCode != M_GETDATA)
         cout << m.m_Header.m_From << ": " << nCode << endl;
+    
     switch (nCode)
     {
         case M_INIT:
@@ -43,6 +64,7 @@ void ProcessClient(SOCKET hSock)
             if (gSessions.find(m.m_Header.m_From) != gSessions.end())
             {
                 gSessions[m.m_Header.m_From]->Send(s);
+                gSessions[m.m_Header.m_From]->ResetTimer();
             }
             break;
         }
@@ -67,6 +89,8 @@ void ProcessClient(SOCKET hSock)
             break;
     }   
     }
+
+    hMutex.unlock();
 }
 
 
@@ -113,6 +137,8 @@ int main()
         }
         else
         {
+            thread s_t(CheckClients);
+            s_t.detach();
             Server();
         }
     }
