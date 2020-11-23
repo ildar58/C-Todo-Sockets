@@ -10,7 +10,7 @@ struct Session
 	CCriticalSection m_CS;
 
 	Session(int ID, string Name)
-		:m_ID(ID), m_Name(Name)
+		:m_ID(ID), m_Name(Name), time(clock())
 	{
 	}
 
