@@ -3,14 +3,18 @@
 struct Session
 {
 	int m_ID;
-	int timer;
+	clock_t time;
 	string m_Name;
 
 	queue<Message> m_Messages;
 	CCriticalSection m_CS;
 
 	Session(int ID, string Name)
-		:m_ID(ID), m_Name(Name), timer(0)
+		:m_ID(ID), m_Name(Name)
+	{
+	}
+
+	~Session()
 	{
 	}
 
@@ -34,14 +38,12 @@ struct Session
 		}
 	}
 
-	bool CheckClient()
-	{
-		timer += 2;
-		return timer > 10;
+	void SetTime(clock_t t) {
+		CSingleLock sl(&m_CS, TRUE);
+		time = t;
 	}
 
-	void ResetTimer()
-	{
-		timer = 0;
+	clock_t getTime() {
+		return time;
 	}
 };

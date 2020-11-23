@@ -2,8 +2,6 @@ from threading import Lock
 
 mutex = Lock()
 
-connection = True
-
 def save_print(text, borders=''):
     mutex.acquire()
     if borders is not None:

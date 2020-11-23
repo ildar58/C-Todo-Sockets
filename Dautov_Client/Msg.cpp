@@ -3,12 +3,6 @@
 
 int Message::m_ClientID = 0;
 
-void Message::Send(CSocket& s, unsigned int To, unsigned int From, unsigned int Type, const string& Data)
-{
-	Message m(To, From, Type, Data);
-	m.Send(s);
-}
-
 Message Message::Send(unsigned int To, unsigned int Type, const string& Data)
 {
 	CSocket s;

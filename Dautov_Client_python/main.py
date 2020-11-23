@@ -1,7 +1,6 @@
 from enums import *
 from msg import *
 from utils import *
-import utils
 import threading
 import time
 
@@ -9,17 +8,16 @@ default_border = '================================='
 
 
 def listenServer():
-    m = Message()
-    while utils.connection:
-        m = Message.Send(MemberTypes.M_BROKER.value, MessageTypes.M_GETDATA.value)
-        if m.m_header.m_type != MessageTypes.M_NODATA.value:
-            save_print(f'Message from client - {m.m_header.m_from}:\n{m.m_data}', default_border)
-        time.sleep(3)
+    while True:
+        m = Message.SendMessage(M_BROKER, M_GETDATA)
+        if m.Header.Type != M_NODATA:
+            save_print(f'Message from client - {m.Header.From}:\n{m.Data}', default_border)
+        time.sleep(2)
 
 
 def connect():
-    Message.Send(MemberTypes.M_BROKER.value, MessageTypes.M_INIT.value)
-    save_print(f'Your id is {Message.m_client_id}', default_border)
+    Message.SendMessage(M_BROKER, M_INIT)
+    save_print(f'Your id is {Message.ClientID}', default_border)
     messages_thread = threading.Thread(target=listenServer, daemon=True)
     messages_thread.start()
 
@@ -32,19 +30,18 @@ def process():
         save_print('1. Send message \n2. Exit')
         answer = int(input())
 
-        if answer == Answers.MESSAGE.value:
+        if answer == 1:
             save_print('Enter ID of client: ', None)
-            m.m_header.m_to = int(input())
+            m.Header.To = int(input())
 
             save_print('Enter your message: ', None)
-            m.m_data = input()
+            m.Data = input()
 
-            Message.Send(m.m_header.m_to, MessageTypes.M_DATA.value, m.m_data)
+            Message.SendMessage(m.Header.To, M_DATA, m.Data)
             save_print('Message was send \n\n')
             continue
-        if answer == Answers.EXIT.value:
-            Message.Send(MemberTypes.M_BROKER.value, MessageTypes.M_EXIT.value)
-            utils.connection = False
+        if answer == 2:
+            Message.SendMessage(M_BROKER, M_EXIT)
             save_print('Session ended\n\n')
             return
         save_print('Press 0 or1 \n\n')

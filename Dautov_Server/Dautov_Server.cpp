@@ -20,17 +20,20 @@ void CheckClients()
 {
     while (true)
     {
-        hMutex.lock();
-            for (auto& [id, Session] : gSessions)
+        for (auto it = gSessions.begin(); it != gSessions.end();)
+        {
+            double  workTime = clock() - it->second->getTime();
+            if (workTime > 10000)
             {
-                if (Session->CheckClient())
-                {
-                    cout << id << " disconnected" << endl;
-                    gSessions.erase(Session->m_ID);
-                }
+                cout << it->first << " disconnected" << endl;
+                it = gSessions.erase(it);
             }
-         hMutex.unlock();
-         Sleep(2000);
+            else
+            {
+                ++it;
+            }
+        }
+        Sleep(1000);
     }
 }
 
@@ -38,12 +41,11 @@ void ProcessClient(SOCKET hSock)
 {
     CSocket s;
     s.Attach(hSock);
+   
     Message m;
-    hMutex.lock();
     int nCode = m.Receive(s);
     if (nCode != M_GETDATA)
-        cout << m.m_Header.m_From << ": " << nCode << endl;
-    
+        cout << m.m_Header.m_From << ": " << nCode << endl;  
     switch (nCode)
     {
         case M_INIT:
@@ -64,7 +66,7 @@ void ProcessClient(SOCKET hSock)
             if (gSessions.find(m.m_Header.m_From) != gSessions.end())
             {
                 gSessions[m.m_Header.m_From]->Send(s);
-                gSessions[m.m_Header.m_From]->ResetTimer();
+                gSessions[m.m_Header.m_From]->SetTime(clock());
             }
             break;
         }
@@ -89,8 +91,6 @@ void ProcessClient(SOCKET hSock)
             break;
     }   
     }
-
-    hMutex.unlock();
 }
 
 

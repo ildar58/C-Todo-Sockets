@@ -53,40 +53,35 @@ void Process() {
     
     while (true)
     {
-        hMutex.lock();
         cout << "1. Send message \n2. Exit" << endl;
-        hMutex.unlock();
         cin >> answer;
+        cin.ignore(32767, '\n');
 
         switch (answer)
         {
         case MESSAGE: 
         {
-            hMutex.lock();
+            string buf = "";
             cout << "Enter ID of client: ";
-            cin >> m.m_Header.m_To;
+            getline(cin, buf);
+            m.m_Header.m_To = stoi(buf);
 
             cout << "Enter your message: ";
-            cin >> m.m_Data;
+            getline(cin, m.m_Data);
 
             Message::Send(m.m_Header.m_To, M_DATA, m.m_Data);
             cout << "Message was send\n\n";
-            hMutex.unlock();
             break;
         }
         case EXIT:
         {
             Message::Send(M_BROKER, M_EXIT);
             connection = false;
-            hMutex.lock();
             cout << "Session ended\n\n";
-            hMutex.unlock();
             return;
         }
         default:
-            hMutex.lock();
             cout << "Press 0 or 1\n\n" << endl;
-            hMutex.unlock();
         }
     }
 }
