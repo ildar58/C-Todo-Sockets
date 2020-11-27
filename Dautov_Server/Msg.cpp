@@ -29,3 +29,18 @@ Message Message::Send(unsigned int To, unsigned int Type, const string& Data)
 	}
 	return m;
 }
+
+Message Message::SendStorage(unsigned int To, unsigned int From, unsigned int Type, const string& Data)
+{
+	CSocket s;
+	s.Create();
+	if (!s.Connect("127.0.0.1", 54321))
+	{
+		DWORD dwError = GetLastError();
+		throw runtime_error("Connection error");
+	}
+	Message m(To, From, Type, Data);
+	m.Send(s);
+	m.Receive(s);
+	return m;
+}

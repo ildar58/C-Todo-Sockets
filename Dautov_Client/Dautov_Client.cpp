@@ -14,25 +14,26 @@ mutex hMutex;
 
 enum Answers {
     MESSAGE = 1,
-    EXIT    = 2
+    EXIT    = 3,
+    GET_MESSAGES = 2
 };
 
 void listenServer() {
-    Message m;
-    while (connection) {
-        m = Message::Send(M_BROKER, M_GETDATA);
-        if (m.m_Header.m_Type != M_NODATA)
-        {
-            hMutex.lock();
-            cout << "===============================================" << endl;;
-            cout << "Message from client - " << m.m_Header.m_From << ":" << endl;
-            cout << m.m_Data << endl;
-            cout << "===============================================" << endl;
-            hMutex.unlock();
-        }
+    //Message m;
+    //while (connection) {
+    //    m = Message::Send(M_BROKER, M_GETDATA);
+    //    if (m.m_Header.m_Type != M_NODATA)
+    //    {
+    //        hMutex.lock();
+    //        cout << "===============================================" << endl;;
+    //        cout << "Message from client - " << m.m_Header.m_From << ":" << endl;
+    //        cout << m.m_Data << endl;
+    //        cout << "===============================================" << endl;
+    //        hMutex.unlock();
+    //    }
 
-        Sleep(2000);
-    }
+    //    Sleep(2000);
+    //}
 }
 
 void Connect()
@@ -53,7 +54,7 @@ void Process() {
     
     while (true)
     {
-        cout << "1. Send message \n2. Exit" << endl;
+        cout << "1. Send message \n2. Get all messages \n3. Exit" << endl;
         cin >> answer;
         cin.ignore(32767, '\n');
 
@@ -71,6 +72,38 @@ void Process() {
 
             Message::Send(m.m_Header.m_To, M_DATA, m.m_Data);
             cout << "Message was send\n\n";
+            break;
+        }
+        case GET_MESSAGES:
+        {
+            CSocket s;
+            s.Create();
+
+            if (!s.Connect("127.0.0.1", 12345))
+            {
+                DWORD dwError = GetLastError();
+                throw runtime_error("Connection error");
+            }
+            m.m_Header.m_To = Message::m_ClientID;
+            m.m_Header.m_Type = M_GET_ALL_DATA;
+            m.Send(s);
+            m.Receive(s);
+            if (m.m_Header.m_Type == M_NODATA)
+                cout << "Сообщенией нет\n\n";
+            else
+            {
+                unsigned int messagesLen = stoi(m.m_Data);
+                for (unsigned int i = 0; i < messagesLen; i++) {
+                    m.Receive(s);
+                    hMutex.lock();
+                    cout << "===============================================" << endl;;
+                    cout << "Message from client - " << m.m_Header.m_From << ":" << endl;
+                    cout << m.m_Data << endl;
+                    cout << "===============================================" << endl;
+                    hMutex.unlock();
+                }
+            }
+            s.Close();
             break;
         }
         case EXIT:

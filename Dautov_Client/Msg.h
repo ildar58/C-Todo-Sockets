@@ -7,7 +7,8 @@ enum Messages
 	M_GETDATA,
 	M_NODATA,
 	M_DATA,
-	M_CONFIRM
+	M_CONFIRM,
+	M_GET_ALL_DATA
 };
 
 enum Members

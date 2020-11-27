@@ -15,7 +15,6 @@ enum Members
 {
 	M_BROKER = 0,
 	M_ALL = 10,
-	M_USER = 100,
 	M_STORAGE = 1000
 };
 
@@ -31,7 +30,6 @@ struct Message
 {
 	MsgHeader m_Header;
 	string m_Data;
-	static int m_ClientID;
 
 	Message()
 	{
@@ -69,6 +67,5 @@ struct Message
 	}
 
 	static void Send(CSocket& s, unsigned int To, unsigned int From, unsigned int Type = M_DATA, const string& Data = "");
-	static Message Send(unsigned int To, unsigned int Type = M_DATA, const string& Data = "");
-	static Message SendStorage(unsigned int To, unsigned int From, unsigned int Type = M_DATA, const string& Data = "");
+	static Message Send(unsigned int Type = M_DATA, const string& Data = "");
 };

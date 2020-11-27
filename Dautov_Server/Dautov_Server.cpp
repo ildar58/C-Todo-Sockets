@@ -10,11 +10,10 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-#include <shared_mutex>
+
 
 int gMaxID = M_USER;
 map<int, shared_ptr<Session>> gSessions;
-shared_mutex hMutex;
 
 void CheckClients()
 {
@@ -23,7 +22,7 @@ void CheckClients()
         for (auto it = gSessions.begin(); it != gSessions.end();)
         {
             double  workTime = clock() - it->second->getTime();
-            if (workTime > 10000)
+            if (workTime > 1000000)
             {
                 cout << it->first << " disconnected" << endl;
                 it = gSessions.erase(it);
@@ -53,12 +52,14 @@ void ProcessClient(SOCKET hSock)
             auto pSession = make_shared<Session>(++gMaxID, m.m_Data);
             gSessions[pSession->m_ID] = pSession;
             Message::Send(s, pSession->m_ID, M_BROKER, M_INIT);
+            Message::SendStorage(M_STORAGE, pSession->m_ID, M_INIT);
             break;
         }
         case M_EXIT:
         {
             gSessions.erase(m.m_Header.m_From);
             Message::Send(s, m.m_Header.m_From, M_BROKER, M_CONFIRM);
+            Message::SendStorage(M_STORAGE, m.m_Header.m_From, M_EXIT);
             return;
         }
         case M_GETDATA:
@@ -70,12 +71,38 @@ void ProcessClient(SOCKET hSock)
             }
             break;
         }
+        case M_GET_ALL_DATA:
+        {
+            CSocket sock;
+            sock.Create();
+            if (!sock.Connect("127.0.0.1", 54321))
+            {
+                DWORD dwError = GetLastError();
+                throw runtime_error("Connection error");
+            }
+            m.Send(sock);
+            m.Receive(sock);
+            if (m.m_Header.m_Type == M_NODATA)
+                m.Send(s, m.m_Header.m_To, m.m_Header.m_From, M_NODATA);
+            else
+            {
+                const unsigned int messagesLen = stoi(m.m_Data);
+                m.Send(s, m.m_Header.m_To, m.m_Header.m_From, M_DATA, to_string(messagesLen));
+                for (unsigned int i = 0; i < messagesLen; i++) {
+                    m.Receive(sock);
+                    m.Send(s, m.m_Header.m_To, m.m_Header.m_From, M_DATA, m.m_Data);
+                }
+            }
+            sock.Close();
+            break;
+        }
         default:
         {
             if (gSessions.find(m.m_Header.m_From) != gSessions.end())
             {
                 if (gSessions.find(m.m_Header.m_To) != gSessions.end())
                 {
+                    Message::SendStorage(m.m_Header.m_To, m.m_Header.m_From, M_DATA, m.m_Data);
                     gSessions[m.m_Header.m_To]->Add(m);
                 }
                 else if (m.m_Header.m_To == M_ALL)
@@ -83,7 +110,10 @@ void ProcessClient(SOCKET hSock)
                     for (auto& [id, Session] : gSessions)
                     {
                         if (id != m.m_Header.m_From)
+                        {
+                            Message::SendStorage(m.m_Header.m_To, m.m_Header.m_From, M_DATA, m.m_Data);
                             Session->Add(m);
+                        }
                     }
                 }
                 Message::Send(s, m.m_Header.m_From, M_BROKER, M_CONFIRM);
