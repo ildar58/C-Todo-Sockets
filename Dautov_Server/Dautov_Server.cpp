@@ -22,7 +22,7 @@ void CheckClients()
         for (auto it = gSessions.begin(); it != gSessions.end();)
         {
             double  workTime = clock() - it->second->getTime();
-            if (workTime > 1000000)
+            if (workTime > 100000)
             {
                 cout << it->first << " disconnected" << endl;
                 it = gSessions.erase(it);

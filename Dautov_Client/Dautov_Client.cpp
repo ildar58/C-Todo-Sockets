@@ -19,21 +19,21 @@ enum Answers {
 };
 
 void listenServer() {
-    //Message m;
-    //while (connection) {
-    //    m = Message::Send(M_BROKER, M_GETDATA);
-    //    if (m.m_Header.m_Type != M_NODATA)
-    //    {
-    //        hMutex.lock();
-    //        cout << "===============================================" << endl;;
-    //        cout << "Message from client - " << m.m_Header.m_From << ":" << endl;
-    //        cout << m.m_Data << endl;
-    //        cout << "===============================================" << endl;
-    //        hMutex.unlock();
-    //    }
+    Message m;
+    while (connection) {
+        m = Message::Send(M_BROKER, M_GETDATA);
+        if (m.m_Header.m_Type != M_NODATA)
+        {
+            hMutex.lock();
+            cout << "===============================================" << endl;;
+            cout << "Message from client - " << m.m_Header.m_From << ":" << endl;
+            cout << m.m_Data << endl;
+            cout << "===============================================" << endl;
+            hMutex.unlock();
+        }
 
-    //    Sleep(2000);
-    //}
+        Sleep(2000);
+    }
 }
 
 void Connect()
