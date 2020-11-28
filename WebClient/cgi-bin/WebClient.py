@@ -28,18 +28,19 @@ class Messenger:
         self.id_input = ''
 
     def MsgGet(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(('localhost', 12345))
-            m = Message(Message.ClientID, M_BROKER, M_GET_ALL_DATA)
-            m.Send(s)
-            m.Receive(s)
-            if (m.Header.Type != M_NODATA):
-                messages_len = int(m.Data)
-                i = 0
-                while i < messages_len:
-                    m.Receive(s);
-                    self.messages.append((m.Header.From, m.Data))
-                    i += 1
+        if len(self.messages) == 0:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect(('localhost', 12345))
+                m = Message(Message.ClientID, M_BROKER, M_GET_ALL_DATA)
+                m.Send(s)
+                m.Receive(s)
+                if (m.Header.Type != M_NODATA):
+                    messages_len = int(m.Data)
+                    i = 0
+                    while i < messages_len:
+                        m.Receive(s);
+                        self.messages.append((m.Header.From, m.Data))
+                        i += 1
 #################################################
 
     def printPage(self):
