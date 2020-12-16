@@ -86,7 +86,7 @@ void ProcessClient(SOCKET hSock)
                 m.Send(s, m.m_Header.m_To, m.m_Header.m_From, M_NODATA);
             else
             {
-                const unsigned int messagesLen = stoi(m.m_Data);
+                unsigned int messagesLen = stoi(m.m_Data);
                 m.Send(s, m.m_Header.m_To, m.m_Header.m_From, M_DATA, to_string(messagesLen));
                 for (unsigned int i = 0; i < messagesLen; i++) {
                     m.Receive(sock);
